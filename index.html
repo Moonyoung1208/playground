@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>메리 크리스마스!</title>
+    <link rel="stylesheet" href="./css/font.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+    <canvas id="snowCanvas"></canvas>
+
+    <div class="tree" id="tree">
+    </div>
+    <div class="trunk"></div>
+
+    <div id="typing-text"></div>
+
+    <script>
+        /** 1. 눈 내리는 효과 **/
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Snowflake {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speed = Math.random() * 1 + 0.5;
+                this.velX = Math.random() * 0.5 - 0.25;
+            }
+            update() {
+                this.y += this.speed;
+                this.x += this.velX;
+                if (this.y > canvas.height) this.y = -10;
+            }
+            draw() {
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 150; i++) particles.push(new Snowflake());
+
+        function animateSnow() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+
+        /** 2. 트리 전구 뿌리기 **/
+        const tree = document.getElementById('tree');
+        const colors = ['#ff0000', '#ffd700', '#ffffff', '#4ecdc4', '#ff6b6b'];
+
+        for (let i = 0; i < 20; i++) {
+            const light = document.createElement('div');
+            light.className = 'light';
+            light.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            // 트리 모양 안에 대충 배치
+            light.style.top = Math.random() * 150 + 'px';
+            light.style.left = (Math.random() * 160 - 80) + 'px';
+            light.style.animationDelay = Math.random() * 2 + 's';
+            tree.appendChild(light);
+        }
+
+        /** 3. 타이핑 텍스트 효과 **/
+        const content = "Merry Christmas! \n 행복한 연말 보내세요";
+        const textElement = document.getElementById("typing-text");
+        let index = 0;
+
+        function typing() {
+            if (index < content.length) {
+                let char = content.charAt(index);
+                textElement.innerHTML += char === "\n" ? "<br/>" : char;
+                index++;
+                setTimeout(typing, 150);
+            }
+        }
+        setTimeout(typing, 1000); // 1초 뒤 시작
+    </script>
+</body>
+
+</html>
