@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Christmas Snowball</title>
+    <title>Magic Snowman Builder</title>
+    <link rel="stylesheet" href="../css/font.css">
     <style>
         :root {
             --gold: #ffd700;
+            --snow: #ffffff;
         }
 
         body,
@@ -18,95 +20,181 @@
             height: 100%;
             overflow: hidden;
             background: #050a18;
-            font-family: 'Apple SD Gothic Neo', sans-serif;
+            font-family: 'SchoolSafetyRoundedSmile','Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
             touch-action: none;
-            /* 모바일 브라우저 기본 제스처 방지 */
-        }
-
-        /* 배경 그라데이션 */
-        .bg-gradient {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
-            opacity: 0.2;
         }
 
         canvas {
             display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
-        /* 중앙 텍스트 */
-        .ui-container {
+        /* UI 레이어 */
+        .ui-layer {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none;
             width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 0;
+            box-sizing: border-box;
+            z-index: 10;
+            pointer-events: none;
         }
 
         .title {
             color: white;
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            opacity: 0.9;
+        }
+
+        /* 눈사람 베이스 */
+        #snowman-container {
+            position: relative;
+            width: 200px;
+            height: 300px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+        }
+
+        .snowman-part {
+            background: white;
+            border-radius: 50%;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.1), 0 0 20px white;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0);
             opacity: 0;
-            animation: fadeIn 2s ease forwards 0.5s;
+            margin-bottom: -15px;
         }
 
-        .guide {
+        .part-visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* 눈사람 각 부위 크기 */
+        .body-bottom {
+            width: 120px;
+            height: 120px;
+        }
+
+        .body-top {
+            width: 90px;
+            height: 90px;
+            z-index: 2;
+        }
+
+        .head {
+            width: 65px;
+            height: 65px;
+            z-index: 3;
+            position: relative;
+        }
+
+        /* 눈사람 얼굴 요소 */
+        .face {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            top: 25px;
+        }
+
+        .eye.left {
+            left: 18px;
+        }
+
+        .eye.right {
+            right: 18px;
+        }
+
+        .nose {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 15px solid orange;
+            transform: rotate(90deg);
+            top: 32px;
+            left: 28px;
+        }
+
+        /* 버튼 스타일 */
+        #build-btn {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'SchoolSafetyRoundedSmile';
+        }
+
+        #build-btn:active {
+            transform: scale(0.9);
+            background: white;
+            color: #050a18;
+        }
+
+        #build-btn.complete {
+            border-color: var(--gold);
             color: var(--gold);
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 0.3;
-            }
-
-            50% {
-                opacity: 1;
-            }
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-gradient"></div>
-    <div class="ui-container">
-        <div class="title">Merry Christmas</div>
-        <div class="guide">TOUCH & TILT ME</div>
-    </div>
     <canvas id="world"></canvas>
 
+    <div class="ui-layer">
+        <div class="title" id="msg">버튼을 눌러주세요</div>
+
+        <div id="snowman-container">
+            <div class="snowman-part body-bottom" id="p1"></div>
+            <div class="snowman-part body-top" id="p2"></div>
+            <div class="snowman-part head" id="p3">
+                <div class="face" id="face">
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="nose"></div>
+                </div>
+            </div>
+        </div>
+
+        <button id="build-btn">TOUCH</button>
+    </div>
+
     <script>
+        // --- 1. 배경 눈 내리기 & 기울기 로직 (이전 로직 유지) ---
         const canvas = document.getElementById('world');
         const ctx = canvas.getContext('2d');
-        let width, height;
-        let particles = [];
-        let touchParticles = [];
-        let gravity = { x: 0, y: 0.5 }; // 기본 중력
+        let width, height, particles = [], touchParticles = [];
+        let gravity = { x: 0, y: 0.4 };
 
-        // 반응형 리사이징
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -114,112 +202,95 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // 1. 눈송이 클래스
         class Snowflake {
-            constructor() {
-                this.reset();
-            }
+            constructor() { this.reset(); }
             reset() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
                 this.vx = (Math.random() - 0.5) * 2;
                 this.vy = Math.random() * 2 + 1;
-                this.radius = Math.random() * 3 + 1;
+                this.radius = Math.random() * 2 + 1;
                 this.opacity = Math.random() * 0.5 + 0.3;
             }
             update() {
-                // 중력(기울기) 영향 적용
-                this.vx += gravity.x * 0.1;
-                this.vy += gravity.y * 0.1;
-
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // 마찰력
-                this.vx *= 0.95;
-                this.vy *= 0.95;
-
-                // 화면 밖으로 나가면 반대편에서 등장 (무한 루프)
+                this.vx += gravity.x * 0.05; this.vy += gravity.y * 0.05;
+                this.x += this.vx; this.y += this.vy;
+                this.vx *= 0.98; this.vy *= 0.98;
                 if (this.y > height) this.y = -10;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0; if (this.x < 0) this.x = width;
             }
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${this.opacity})`; ctx.fill();
             }
         }
 
-        // 2. 터치 반짝이 효과 클래스
-        class Spark {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 10;
-                this.vy = (Math.random() - 0.5) * 10;
-                this.life = 1;
-                this.color = `hsl(${Math.random() * 50 + 30}, 100%, 70%)`; // 금색 계열
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= 0.02;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.life;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
+        for (let i = 0; i < 80; i++) particles.push(new Snowflake());
 
-        // 초기 눈송이 생성
-        for (let i = 0; i < 100; i++) particles.push(new Snowflake());
-
-        // 터치 이벤트 처리
-        function handleTouch(e) {
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            for (let i = 0; i < 5; i++) {
-                touchParticles.push(new Spark(x, y));
-            }
-        }
-        window.addEventListener('touchstart', handleTouch);
-        window.addEventListener('touchmove', handleTouch);
-
-        // 모바일 기울기 센서 (Device Orientation)
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', (e) => {
-                // 폰을 기울이는 방향에 따라 중력 가속도 조절
-                gravity.x = e.gamma / 20; // 좌우 기울기
-                gravity.y = Math.min(e.beta / 20, 2);  // 상하 기울기
+                gravity.x = e.gamma / 25; gravity.y = Math.min(e.beta / 25, 1.5);
             });
         }
 
-        // 애니메이션 루프
+        // --- 2. 눈사람 만들기 로직 ---
+        let step = 0;
+        const btn = document.getElementById('build-btn');
+        const msg = document.getElementById('msg');
+
+        btn.addEventListener('click', () => {
+            step++;
+            if (step === 1) document.getElementById('p1').classList.add('part-visible');
+            if (step === 2) document.getElementById('p2').classList.add('part-visible');
+            if (step === 3) {
+                document.getElementById('p3').classList.add('part-visible');
+                setTimeout(() => document.getElementById('face').style.opacity = '1', 300);
+                btn.innerText = "완성! ❄️";
+                btn.classList.add('complete');
+                msg.innerText = "Happy Holidays!";
+                triggerCelebration();
+            }
+            if (step > 3) location.reload(); // 다시 만들기
+        });
+
+        // 완성 축하 파티클
+        function triggerCelebration() {
+            for (let i = 0; i < 50; i++) {
+                touchParticles.push(new Spark(width / 2, height / 2 + 50));
+            }
+        }
+
+        class Spark {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 15;
+                this.vy = (Math.random() - 0.5) * 15;
+                this.life = 1;
+                this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.globalAlpha = this.life; ctx.fill(); ctx.globalAlpha = 1;
+            }
+        }
+
         function animate() {
             ctx.clearRect(0, 0, width, height);
-
-            // 눈송이 업데이트
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-
-            // 터치 파티클 업데이트
+            particles.forEach(p => { p.update(); p.draw(); });
             for (let i = touchParticles.length - 1; i >= 0; i--) {
-                touchParticles[i].update();
-                touchParticles[i].draw();
+                touchParticles[i].update(); touchParticles[i].draw();
                 if (touchParticles[i].life <= 0) touchParticles.splice(i, 1);
             }
-
             requestAnimationFrame(animate);
         }
         animate();
+
+        // 터치 피드백
+        window.addEventListener('touchstart', (e) => {
+            const x = e.touches[0].clientX; const y = e.touches[0].clientY;
+            for (let i = 0; i < 3; i++) touchParticles.push(new Spark(x, y));
+        });
     </script>
 </body>
 
