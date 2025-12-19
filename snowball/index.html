@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic Christmas Snowball</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #050a18;
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+            touch-action: none;
+            /* 모바일 브라우저 기본 제스처 방지 */
+        }
+
+        /* 배경 그라데이션 */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
+            opacity: 0.2;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* 중앙 텍스트 */
+        .ui-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            width: 100%;
+        }
+
+        .title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards 0.5s;
+        }
+
+        .guide {
+            color: var(--gold);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+    <div class="ui-container">
+        <div class="title">Merry Christmas</div>
+        <div class="guide">TOUCH & TILT ME</div>
+    </div>
+    <canvas id="world"></canvas>
+
+    <script>
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let touchParticles = [];
+        let gravity = { x: 0, y: 0.5 }; // 기본 중력
+
+        // 반응형 리사이징
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // 1. 눈송이 클래스
+        class Snowflake {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = Math.random() * 2 + 1;
+                this.radius = Math.random() * 3 + 1;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                // 중력(기울기) 영향 적용
+                this.vx += gravity.x * 0.1;
+                this.vy += gravity.y * 0.1;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 마찰력
+                this.vx *= 0.95;
+                this.vy *= 0.95;
+
+                // 화면 밖으로 나가면 반대편에서 등장 (무한 루프)
+                if (this.y > height) this.y = -10;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        // 2. 터치 반짝이 효과 클래스
+        class Spark {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1;
+                this.color = `hsl(${Math.random() * 50 + 30}, 100%, 70%)`; // 금색 계열
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.02;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 초기 눈송이 생성
+        for (let i = 0; i < 100; i++) particles.push(new Snowflake());
+
+        // 터치 이벤트 처리
+        function handleTouch(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            for (let i = 0; i < 5; i++) {
+                touchParticles.push(new Spark(x, y));
+            }
+        }
+        window.addEventListener('touchstart', handleTouch);
+        window.addEventListener('touchmove', handleTouch);
+
+        // 모바일 기울기 센서 (Device Orientation)
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (e) => {
+                // 폰을 기울이는 방향에 따라 중력 가속도 조절
+                gravity.x = e.gamma / 20; // 좌우 기울기
+                gravity.y = Math.min(e.beta / 20, 2);  // 상하 기울기
+            });
+        }
+
+        // 애니메이션 루프
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 눈송이 업데이트
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // 터치 파티클 업데이트
+            for (let i = touchParticles.length - 1; i >= 0; i--) {
+                touchParticles[i].update();
+                touchParticles[i].draw();
+                if (touchParticles[i].life <= 0) touchParticles.splice(i, 1);
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>
