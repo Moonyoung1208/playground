@@ -1,0 +1,142 @@
+:root {
+    --bg-color: #f4f1ea;
+    --point-red: #c0392b;
+    --point-gold: #d4af37;
+    --dark-text: #2c3e50;
+    --traditional-blue: #2980b9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'RomanticGumi', 'Malgun Gothic', sans-serif;
+    color: var(--dark-text);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* 한국적 배경 문양 */
+.korean-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.05;
+    background-image: radial-gradient(var(--point-red) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: -1;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 20px;
+}
+
+.year-text {
+    color: var(--point-red);
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.main-title {
+    font-size: 1.8rem;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    word-break: keep-all;
+}
+
+.sub-title {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+/* 복주머니 그래픽 */
+#interaction-area {
+    margin: 50px 0;
+    perspective: 1000px;
+}
+
+#lucky-bag {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#lucky-bag img {
+    width: 250px;
+}
+
+/* 애니메이션 */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-5deg);
+    }
+
+    75% {
+        transform: rotate(5deg);
+    }
+}
+
+.shake-animation {
+    animation: shake 2s infinite ease-in-out;
+}
+
+.hidden {
+    display: none;
+    opacity: 0;
+}
+
+/* 결과 메시지 */
+#result-message {
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.greeting {
+    color: var(--point-red);
+    margin-bottom: 15px;
+}
+
+.desc {
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+#retry-btn {
+    background-color: var(--point-red);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: bold;
+}
